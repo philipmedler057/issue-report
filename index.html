@@ -8,47 +8,84 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Issue Report</title>
 <style>
-:root{--bg:#08111f;--panel:#101b2d;--panel2:#152238;--text:#f4f7fb;--muted:#9fb0c8;--accent:#2f80ed;--border:#22314a}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+:root{--bg:#08111f;--panel:#101b2d;--panel2:#152238;--text:#f4f7fb;--muted:#9fb0c8;--accent:#2f80ed;--danger:#dc4d5b;--border:#22314a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
 .app{max-width:820px;margin:0 auto;padding:18px 16px 100px;min-height:100vh}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
 .top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:16px}
-.title{font-size:26px;font-weight:800} .muted{color:var(--muted);font-size:14px}
+.title{font-size:26px;font-weight:800}
+.muted{color:var(--muted);font-size:14px}
 input,textarea,select{width:100%;background:#0b1627;color:white;border:1px solid var(--border);border-radius:14px;padding:13px;font-size:16px}
-textarea{min-height:100px} label{display:block;margin:12px 0 6px;color:var(--muted);font-size:14px}
+textarea{min-height:100px}
+label{display:block;margin:12px 0 6px;color:var(--muted);font-size:14px}
 button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;font-size:15px}
-.primary{background:var(--accent);color:#fff} .secondary{background:var(--panel2);color:#fff;border:1px solid var(--border)} .hidden{display:none}
-.row{display:flex;gap:10px;align-items:center} .grow{flex:1} .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
-.issue{display:grid;grid-template-columns:78px 1fr;gap:12px;align-items:center} .thumb{width:78px;height:64px;object-fit:cover;border-radius:12px;background:#0b1627}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} .grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
-.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#20304b;font-size:12px} .empty{text-align:center;padding:35px;color:var(--muted)}
+.primary{background:var(--accent);color:#fff}
+.secondary{background:var(--panel2);color:#fff;border:1px solid var(--border)}
+.danger{background:#3a1820;color:#ffb6bd;border:1px solid #63303a}
+.hidden{display:none}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.issue{display:grid;grid-template-columns:78px 1fr auto;gap:12px;align-items:center}
+.thumb{width:78px;height:64px;object-fit:cover;border-radius:12px;background:#0b1627}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#20304b;font-size:12px}
+.empty{text-align:center;padding:35px;color:var(--muted)}
+.photo-row{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.photo-row:last-child{border-bottom:0}
+.photo-preview{width:96px;height:76px;border-radius:12px;background:#0b1627;object-fit:cover}
+.photo-placeholder{width:96px;height:76px;border-radius:12px;background:#0b1627;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.issue-actions{display:flex;align-items:center}
+.delete-small{padding:9px 11px;font-size:13px}
+.location-count{margin-bottom:10px}
+@media(max-width:560px){
+  .issue{grid-template-columns:68px 1fr}
+  .thumb{width:68px;height:60px}
+  .issue-actions{grid-column:1/-1;justify-content:flex-end}
+  .top{align-items:flex-start}
+}
 </style>
 </head>
 <body>
 <div class="app">
+
 <section id="auth">
   <div class="card" style="max-width:460px;margin:60px auto">
-    <div class="muted">Issue Report</div><div class="title">Sign in</div>
+    <div class="muted">Issue Report</div>
+    <div class="title">Sign in</div>
     <label>Email</label><input id="email" type="email">
     <label>Password</label><input id="password" type="password">
-    <div class="toolbar"><button class="primary grow" onclick="signIn()">Sign in</button><button class="secondary grow" onclick="signUp()">Create account</button></div>
+    <div class="toolbar">
+      <button class="primary grow" onclick="signIn()">Sign in</button>
+      <button class="secondary grow" onclick="signUp()">Create account</button>
+    </div>
     <div id="authmsg" class="muted"></div>
   </div>
 </section>
 
 <section id="projects" class="hidden">
-  <div class="top"><div><div class="muted">Issue Report</div><div class="title">Projects</div></div><button class="secondary" onclick="signOut()">Sign out</button></div>
+  <div class="top">
+    <div><div class="muted">Issue Report</div><div class="title">Projects</div></div>
+    <button class="secondary" onclick="signOut()">Sign out</button>
+  </div>
   <div class="toolbar"><button class="primary" onclick="showNewProject()">+ New Project</button></div>
   <div id="projectList"></div>
 </section>
 
 <section id="newProject" class="hidden">
   <div class="top"><button class="secondary" onclick="loadProjects()">← Back</button><div class="title">New Project</div></div>
-  <div class="card"><label>Name</label><input id="pname"><label>Venue</label><input id="pvenue"><button class="primary" style="margin-top:14px;width:100%" onclick="createProject()">Create</button></div>
+  <div class="card">
+    <label>Name</label><input id="pname">
+    <label>Venue</label><input id="pvenue">
+    <button class="primary" style="margin-top:14px;width:100%" onclick="createProject()">Create</button>
+  </div>
 </section>
 
 <section id="project" class="hidden">
-  <div class="top"><button class="secondary" onclick="loadProjects()">← Projects</button><div><div id="pmeta" class="muted"></div><div id="ptitle" class="title"></div></div></div>
+  <div class="top">
+    <button class="secondary" onclick="loadProjects()">← Projects</button>
+    <div><div id="pmeta" class="muted"></div><div id="ptitle" class="title"></div></div>
+  </div>
   <div class="toolbar">
     <button class="primary" onclick="newIssue()">+ New Issue</button>
     <button class="secondary" onclick="locations()">Locations</button>
@@ -59,14 +96,37 @@ button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;font-size:1
 
 <section id="locations" class="hidden">
   <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">Locations</div></div>
-  <div class="card"><label>Add location</label><div class="row"><input id="locname"><button class="primary" onclick="addLocation()">Add</button></div></div>
+  <div class="card">
+    <div class="muted">Add as many locations as you need for this project.</div>
+    <label>Add location</label>
+    <div class="row"><input id="locname" placeholder="e.g. Broadcast Compound"><button class="primary" onclick="addLocation()">Add</button></div>
+  </div>
+  <div id="locCount" class="muted location-count"></div>
   <div id="locList"></div>
 </section>
 
 <section id="newIssue" class="hidden">
   <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">New Issue</div></div>
   <div class="card">
-    <label>Photos (max 4)</label><input id="photos" type="file" accept="image/*" capture="environment" multiple><div id="preview" class="grid" style="margin-top:10px"></div>
+    <label>Photos — up to 4</label>
+
+    <div class="photo-row">
+      <div id="ph1" class="photo-placeholder">Photo 1</div>
+      <div><div class="muted" style="margin-bottom:6px">Photo 1</div><input id="photo1" type="file" accept="image/*" capture="environment"></div>
+    </div>
+    <div class="photo-row">
+      <div id="ph2" class="photo-placeholder">Photo 2</div>
+      <div><div class="muted" style="margin-bottom:6px">Photo 2</div><input id="photo2" type="file" accept="image/*" capture="environment"></div>
+    </div>
+    <div class="photo-row">
+      <div id="ph3" class="photo-placeholder">Photo 3</div>
+      <div><div class="muted" style="margin-bottom:6px">Photo 3</div><input id="photo3" type="file" accept="image/*" capture="environment"></div>
+    </div>
+    <div class="photo-row">
+      <div id="ph4" class="photo-placeholder">Photo 4</div>
+      <div><div class="muted" style="margin-bottom:6px">Photo 4</div><input id="photo4" type="file" accept="image/*" capture="environment"></div>
+    </div>
+
     <label>Description</label><textarea id="desc"></textarea>
     <label>Location</label><select id="location"></select>
     <label>Category</label><input id="category">
@@ -75,6 +135,7 @@ button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;font-size:1
     <div id="issuemsg" class="muted" style="margin-top:8px"></div>
   </div>
 </section>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -83,28 +144,143 @@ button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;font-size:1
 const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
 let currentProject=null,currentIssues=[],currentLocations=[];
 
-function show(id){['auth','projects','newProject','project','locations','newIssue'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
 const el=id=>document.getElementById(id);
+function show(id){['auth','projects','newProject','project','locations','newIssue'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
+function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
-async function boot(){const {data}=await sb.auth.getSession(); if(data.session) loadProjects(); else show('auth');}
+async function boot(){const {data}=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
 async function signUp(){const {error}=await sb.auth.signUp({email:el('email').value.trim(),password:el('password').value});el('authmsg').textContent=error?error.message:'Account created. Check email if confirmation is enabled.';}
 async function signIn(){const {error}=await sb.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)el('authmsg').textContent=error.message;else loadProjects();}
 async function signOut(){await sb.auth.signOut();show('auth');}
 
 function showNewProject(){show('newProject');}
-async function createProject(){const {data:u}=await sb.auth.getUser();const {error}=await sb.from('projects').insert({name:el('pname').value.trim(),venue:el('pvenue').value.trim(),owner_id:u.user.id});if(error)return alert(error.message);loadProjects();}
-async function loadProjects(){const {data,error}=await sb.from('projects').select('*').order('created_at',{ascending:false});if(error)return alert(error.message);el('projectList').innerHTML=(data||[]).map(p=>`<div class="card" data-id="${p.id}"><b>${p.name}</b><div class="muted">${p.venue||''}</div></div>`).join('')||'<div class="empty">No projects yet.</div>';el('projectList').querySelectorAll('[data-id]').forEach(c=>c.onclick=()=>openProject(data.find(p=>p.id===c.dataset.id)));show('projects');}
-async function openProject(p){currentProject=p;el('ptitle').textContent=p.name;el('pmeta').textContent=p.venue||'';const {data,error}=await sb.from('issues').select('*,locations(name),issue_photos(*)').eq('project_id',p.id).order('issue_number');if(error)return alert(error.message);currentIssues=data||[];el('issueList').innerHTML=currentIssues.map(i=>`<div class="card issue"><div class="thumb"></div><div><b>#${String(i.issue_number).padStart(3,'0')} ${i.description}</b><div class="muted">${i.locations?.name||'No location'}</div><span class="badge">${i.status}</span></div></div>`).join('')||'<div class="empty">No issues yet.</div>';show('project');}
+async function createProject(){
+  const name=el('pname').value.trim();if(!name)return alert('Project name required.');
+  const {data:u}=await sb.auth.getUser();
+  const {error}=await sb.from('projects').insert({name,venue:el('pvenue').value.trim(),owner_id:u.user.id});
+  if(error)return alert(error.message);
+  el('pname').value='';el('pvenue').value='';loadProjects();
+}
+async function loadProjects(){
+  const {data,error}=await sb.from('projects').select('*').order('created_at',{ascending:false});
+  if(error)return alert(error.message);
+  el('projectList').innerHTML=(data||[]).map(p=>`<div class="card" data-id="${p.id}"><b>${safe(p.name)}</b><div class="muted">${safe(p.venue||'')}</div></div>`).join('')||'<div class="empty">No projects yet.</div>';
+  el('projectList').querySelectorAll('[data-id]').forEach(c=>c.onclick=()=>openProject(data.find(p=>p.id===c.dataset.id)));
+  show('projects');
+}
 
-async function locations(){await loadLocations();el('locList').innerHTML=currentLocations.map(l=>`<div class="card">${l.name}</div>`).join('')||'<div class="empty">No locations yet.</div>';show('locations');}
-async function loadLocations(){const {data,error}=await sb.from('locations').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');if(error)return alert(error.message);currentLocations=data||[];}
-async function addLocation(){const name=el('locname').value.trim();if(!name)return;const {error}=await sb.from('locations').insert({project_id:currentProject.id,name});if(error)return alert(error.message);el('locname').value='';locations();}
+async function openProject(p){
+  currentProject=p;
+  el('ptitle').textContent=p.name;el('pmeta').textContent=p.venue||'';
+  const {data,error}=await sb.from('issues').select('*,locations(name),issue_photos(*)').eq('project_id',p.id).order('issue_number');
+  if(error)return alert(error.message);
+  currentIssues=data||[];
+  el('issueList').innerHTML=currentIssues.map(i=>{
+    const first=(i.issue_photos||[]).sort((a,b)=>a.position-b.position)[0];
+    return `<div class="card issue">
+      ${first?`<img class="thumb" data-photo-path="${safe(first.storage_path)}">`:'<div class="thumb"></div>'}
+      <div><b>#${String(i.issue_number).padStart(3,'0')} ${safe(i.description)}</b>
+      <div class="muted">${safe(i.locations?.name||'No location')}</div><span class="badge">${safe(i.status)}</span></div>
+      <div class="issue-actions"><button class="danger delete-small" data-delete="${i.id}">Delete</button></div>
+    </div>`;
+  }).join('')||'<div class="empty">No issues yet.</div>';
 
-async function newIssue(){await loadLocations();el('location').innerHTML='<option value="">Select location</option>'+currentLocations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');el('desc').value='';el('category').value='';el('photos').value='';el('preview').innerHTML='';show('newIssue');}
-el('photos').addEventListener('change',e=>{let files=[...e.target.files];if(files.length>4){alert('Maximum 4 photos');files=files.slice(0,4)}el('preview').innerHTML='';files.forEach(f=>{let i=document.createElement('img');i.src=URL.createObjectURL(f);el('preview').appendChild(i)});});
-async function saveIssue(){const d=el('desc').value.trim();if(!d)return alert('Description required');const files=[...el('photos').files].slice(0,4);el('issuemsg').textContent='Saving...';const {data:issue,error}=await sb.from('issues').insert({project_id:currentProject.id,issue_number:0,description:d,location_id:el('location').value||null,category:el('category').value||null,status:el('status').value}).select().single();if(error){el('issuemsg').textContent=error.message;return}const {data:u}=await sb.auth.getUser();for(let n=0;n<files.length;n++){const path=`${currentProject.id}/${issue.id}/${crypto.randomUUID()}.jpg`;const {error:ue}=await sb.storage.from('issue-photos').upload(path,files[n],{contentType:files[n].type||'image/jpeg'});if(ue){el('issuemsg').textContent=ue.message;return}await sb.from('issue_photos').insert({issue_id:issue.id,storage_path:path,position:n+1,created_by:u.user.id});}openProject(currentProject);}
+  for(const img of el('issueList').querySelectorAll('[data-photo-path]')){
+    const {data:signed}=await sb.storage.from('issue-photos').createSignedUrl(img.dataset.photoPath,3600);
+    if(signed?.signedUrl)img.src=signed.signedUrl;
+  }
+  el('issueList').querySelectorAll('[data-delete]').forEach(btn=>btn.onclick=()=>deleteIssue(btn.dataset.delete));
+  show('project');
+}
 
-async function exportPDF(){if(!currentIssues.length)return alert('No issues to export');const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});for(let x=0;x<currentIssues.length;x++){if(x)doc.addPage();const i=currentIssues[x];doc.setFontSize(18);doc.text(currentProject.name,15,20);doc.setFontSize(14);doc.text('ISSUE #'+String(i.issue_number).padStart(3,'0'),15,34);doc.setFontSize(10);doc.text('Location: '+(i.locations?.name||'-'),15,45);doc.text('Status: '+i.status,15,52);doc.text('Category: '+(i.category||'-'),15,59);doc.text(doc.splitTextToSize(i.description,180),15,72);}doc.save((currentProject.name||'project').replace(/[^a-z0-9]+/gi,'_')+'_issues.pdf');}
+async function deleteIssue(issueId){
+  const issue=currentIssues.find(i=>i.id===issueId);if(!issue)return;
+  if(!confirm(`Delete Issue #${String(issue.issue_number).padStart(3,'0')}? This cannot be undone.`))return;
+  const paths=(issue.issue_photos||[]).map(p=>p.storage_path).filter(Boolean);
+  if(paths.length){
+    const {error:storageError}=await sb.storage.from('issue-photos').remove(paths);
+    if(storageError)return alert('Could not delete photos: '+storageError.message);
+  }
+  const {error}=await sb.from('issues').delete().eq('id',issueId);
+  if(error)return alert(error.message);
+  await openProject(currentProject);
+}
+
+async function loadLocations(){
+  const {data,error}=await sb.from('locations').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');
+  if(error)return alert(error.message);
+  currentLocations=data||[];
+}
+async function locations(){
+  await loadLocations();
+  el('locCount').textContent=`${currentLocations.length} location${currentLocations.length===1?'':'s'}`;
+  el('locList').innerHTML=currentLocations.map(l=>`<div class="card">${safe(l.name)}</div>`).join('')||'<div class="empty">No locations yet.</div>';
+  show('locations');
+}
+async function addLocation(){
+  const name=el('locname').value.trim();if(!name)return;
+  const {error}=await sb.from('locations').insert({project_id:currentProject.id,name});
+  if(error)return alert(error.message);
+  el('locname').value='';locations();
+}
+
+function setupPreview(inputId,previewId){
+  el(inputId).addEventListener('change',e=>{
+    const file=e.target.files[0];
+    if(!file){el(previewId).outerHTML=`<div id="${previewId}" class="photo-placeholder">${inputId.replace('photo','Photo ')}</div>`;setupPreview(inputId,previewId);return;}
+    const old=el(previewId);
+    const img=document.createElement('img');img.id=previewId;img.className='photo-preview';img.src=URL.createObjectURL(file);
+    old.replaceWith(img);
+  });
+}
+setupPreview('photo1','ph1');setupPreview('photo2','ph2');setupPreview('photo3','ph3');setupPreview('photo4','ph4');
+
+async function newIssue(){
+  await loadLocations();
+  el('location').innerHTML='<option value="">Select location</option>'+currentLocations.map(l=>`<option value="${l.id}">${safe(l.name)}</option>`).join('');
+  el('desc').value='';el('category').value='';el('status').value='open';el('issuemsg').textContent='';
+  for(let n=1;n<=4;n++){el('photo'+n).value='';const old=el('ph'+n);if(old&&old.tagName==='IMG'){const d=document.createElement('div');d.id='ph'+n;d.className='photo-placeholder';d.textContent='Photo '+n;old.replaceWith(d);setupPreview('photo'+n,'ph'+n);}}
+  show('newIssue');
+}
+
+async function saveIssue(){
+  const d=el('desc').value.trim();if(!d)return alert('Description required.');
+  const files=[el('photo1').files[0],el('photo2').files[0],el('photo3').files[0],el('photo4').files[0]].filter(Boolean);
+  el('issuemsg').textContent='Saving issue...';
+  const {data:issue,error}=await sb.from('issues').insert({
+    project_id:currentProject.id,issue_number:0,description:d,location_id:el('location').value||null,
+    category:el('category').value||null,status:el('status').value
+  }).select().single();
+  if(error){el('issuemsg').textContent=error.message;return;}
+  const {data:u}=await sb.auth.getUser();
+  for(let n=0;n<files.length;n++){ 
+    el('issuemsg').textContent=`Uploading photo ${n+1}/${files.length}...`;
+    const file=files[n];
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+    const path=`${currentProject.id}/${issue.id}/${crypto.randomUUID()}.${ext}`;
+    const {error:ue}=await sb.storage.from('issue-photos').upload(path,file,{contentType:file.type||'image/jpeg'});
+    if(ue){el('issuemsg').textContent=ue.message;return;}
+    const {error:re}=await sb.from('issue_photos').insert({issue_id:issue.id,storage_path:path,position:n+1,created_by:u.user.id});
+    if(re){el('issuemsg').textContent=re.message;return;}
+  }
+  await openProject(currentProject);
+}
+
+async function exportPDF(){
+  if(!currentIssues.length)return alert('No issues to export.');
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
+  for(let x=0;x<currentIssues.length;x++){
+    if(x)doc.addPage();
+    const i=currentIssues[x];
+    doc.setFontSize(18);doc.text(currentProject.name,15,20);
+    doc.setFontSize(14);doc.text('ISSUE #'+String(i.issue_number).padStart(3,'0'),15,34);
+    doc.setFontSize(10);doc.text('Location: '+(i.locations?.name||'-'),15,45);
+    doc.text('Status: '+i.status,15,52);doc.text('Category: '+(i.category||'-'),15,59);
+    doc.text(doc.splitTextToSize(i.description,180),15,72);
+  }
+  doc.save((currentProject.name||'project').replace(/[^a-z0-9]+/gi,'_')+'_issues.pdf');
+}
+
 boot();
 </script>
 </body>
