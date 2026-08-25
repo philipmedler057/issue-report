@@ -1,213 +1,111 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1220" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <title>Issue Report</title>
-  <style>
-    :root{
-      --bg:#08111f; --panel:#101b2d; --panel2:#152238; --text:#f4f7fb;
-      --muted:#9fb0c8; --accent:#2f80ed; --danger:#ef5350; --ok:#2ecc71;
-      --border:#22314a;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .app{max-width:760px;margin:0 auto;min-height:100vh;padding:18px 16px 110px}
-    h1,h2,h3{margin:0 0 12px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-    .title{font-size:26px;font-weight:800}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
-    .row{display:flex;gap:10px;align-items:center}
-    .grow{flex:1}
-    .muted{color:var(--muted);font-size:14px}
-    button,.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:700;font-size:15px;cursor:pointer}
-    .primary{background:var(--accent);color:white}
-    .secondary{background:var(--panel2);color:white;border:1px solid var(--border)}
-    .danger{background:#3a1820;color:#ffb2b2}
-    .fab{position:fixed;right:22px;bottom:24px;width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;font-size:30px;box-shadow:0 10px 24px #0008}
-    input,textarea,select{width:100%;background:#0b1627;color:var(--text);border:1px solid var(--border);border-radius:14px;padding:13px 14px;font-size:16px}
-    textarea{min-height:110px;resize:vertical}
-    label{display:block;margin:14px 0 7px;font-size:14px;color:var(--muted)}
-    .issue{display:grid;grid-template-columns:86px 1fr auto;gap:12px;align-items:center}
-    .thumb{width:86px;height:72px;border-radius:12px;object-fit:cover;background:#0b1627}
-    .badge{display:inline-block;padding:5px 8px;border-radius:999px;font-size:12px;font-weight:700}
-    .open{background:#3a2f10;color:#ffd166}
-    .resolved{background:#133321;color:#80e3a4}
-    .hidden{display:none!important}
-    .back{background:transparent;color:var(--text);padding:6px 4px}
-    .empty{text-align:center;padding:42px 14px;color:var(--muted)}
-    img.preview{width:100%;max-height:360px;object-fit:contain;border-radius:16px;background:#07101c;margin-top:12px}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
-    @media (max-width:560px){.issue{grid-template-columns:72px 1fr}.issue>.chev{display:none}.thumb{width:72px;height:64px}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Issue Report</title>
+<style>
+:root{--bg:#08111f;--panel:#101b2d;--panel2:#152238;--text:#f4f7fb;--muted:#9fb0c8;--accent:#2f80ed;--border:#22314a}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{max-width:820px;margin:0 auto;padding:18px 16px 100px;min-height:100vh}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:16px}
+.title{font-size:26px;font-weight:800} .muted{color:var(--muted);font-size:14px}
+input,textarea,select{width:100%;background:#0b1627;color:white;border:1px solid var(--border);border-radius:14px;padding:13px;font-size:16px}
+textarea{min-height:100px} label{display:block;margin:12px 0 6px;color:var(--muted);font-size:14px}
+button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;font-size:15px}
+.primary{background:var(--accent);color:#fff} .secondary{background:var(--panel2);color:#fff;border:1px solid var(--border)} .hidden{display:none}
+.row{display:flex;gap:10px;align-items:center} .grow{flex:1} .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.issue{display:grid;grid-template-columns:78px 1fr;gap:12px;align-items:center} .thumb{width:78px;height:64px;object-fit:cover;border-radius:12px;background:#0b1627}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} .grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#20304b;font-size:12px} .empty{text-align:center;padding:35px;color:var(--muted)}
+</style>
 </head>
 <body>
 <div class="app">
-  <section id="projectsView">
-    <div class="topbar"><div><div class="muted">Issue Report</div><div class="title">Projects</div></div></div>
-    <div id="projectsList"></div>
-    <button class="fab" onclick="showNewProject()">+</button>
-  </section>
+<section id="auth">
+  <div class="card" style="max-width:460px;margin:60px auto">
+    <div class="muted">Issue Report</div><div class="title">Sign in</div>
+    <label>Email</label><input id="email" type="email">
+    <label>Password</label><input id="password" type="password">
+    <div class="toolbar"><button class="primary grow" onclick="signIn()">Sign in</button><button class="secondary grow" onclick="signUp()">Create account</button></div>
+    <div id="authmsg" class="muted"></div>
+  </div>
+</section>
 
-  <section id="newProjectView" class="hidden">
-    <div class="topbar"><button class="back" onclick="goProjects()">← Back</button><div class="title">New Project</div><span></span></div>
-    <div class="card">
-      <label>Project name</label>
-      <input id="projectName" placeholder="e.g. US Open 2026" />
-      <label>Location / Venue</label>
-      <input id="projectLocation" placeholder="optional" />
-      <div class="toolbar">
-        <button class="primary grow" onclick="createProject()">Create project</button>
-      </div>
-    </div>
-  </section>
+<section id="projects" class="hidden">
+  <div class="top"><div><div class="muted">Issue Report</div><div class="title">Projects</div></div><button class="secondary" onclick="signOut()">Sign out</button></div>
+  <div class="toolbar"><button class="primary" onclick="showNewProject()">+ New Project</button></div>
+  <div id="projectList"></div>
+</section>
 
-  <section id="projectView" class="hidden">
-    <div class="topbar"><button class="back" onclick="goProjects()">← Projects</button><div><div class="muted" id="projectMeta"></div><div class="title" id="projectTitle"></div></div><span></span></div>
-    <div class="toolbar">
-      <button class="primary" onclick="showNewIssue()">+ New Issue</button>
-      <button class="secondary" onclick="exportPDF()">Export PDF</button>
-    </div>
-    <div id="issuesList"></div>
-  </section>
+<section id="newProject" class="hidden">
+  <div class="top"><button class="secondary" onclick="loadProjects()">← Back</button><div class="title">New Project</div></div>
+  <div class="card"><label>Name</label><input id="pname"><label>Venue</label><input id="pvenue"><button class="primary" style="margin-top:14px;width:100%" onclick="createProject()">Create</button></div>
+</section>
 
-  <section id="newIssueView" class="hidden">
-    <div class="topbar"><button class="back" onclick="goProject()">← Back</button><div class="title">New Issue</div><span></span></div>
-    <div class="card">
-      <label>Photo</label>
-      <input id="issuePhoto" type="file" accept="image/*" capture="environment" />
-      <img id="photoPreview" class="preview hidden" alt="Preview" />
-      <label>Description</label>
-      <textarea id="issueDescription" placeholder="Describe the problem briefly"></textarea>
-      <label>Location</label>
-      <input id="issueLocation" placeholder="optional" />
-      <label>Category</label>
-      <input id="issueCategory" placeholder="optional" />
-      <label>Status</label>
-      <select id="issueStatus"><option>Open</option><option>Resolved</option></select>
-      <div class="toolbar">
-        <button class="primary grow" onclick="saveIssue()">Save issue</button>
-      </div>
-    </div>
-  </section>
+<section id="project" class="hidden">
+  <div class="top"><button class="secondary" onclick="loadProjects()">← Projects</button><div><div id="pmeta" class="muted"></div><div id="ptitle" class="title"></div></div></div>
+  <div class="toolbar">
+    <button class="primary" onclick="newIssue()">+ New Issue</button>
+    <button class="secondary" onclick="locations()">Locations</button>
+    <button class="secondary" onclick="exportPDF()">Export PDF</button>
+  </div>
+  <div id="issueList"></div>
+</section>
 
-  <section id="issueDetailView" class="hidden">
-    <div class="topbar"><button class="back" onclick="goProject()">← Back</button><div class="title" id="detailNumber"></div><span></span></div>
-    <div class="card" id="detailCard"></div>
-    <div class="toolbar"><button class="danger" onclick="deleteCurrentIssue()">Delete Issue</button></div>
-  </section>
+<section id="locations" class="hidden">
+  <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">Locations</div></div>
+  <div class="card"><label>Add location</label><div class="row"><input id="locname"><button class="primary" onclick="addLocation()">Add</button></div></div>
+  <div id="locList"></div>
+</section>
+
+<section id="newIssue" class="hidden">
+  <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">New Issue</div></div>
+  <div class="card">
+    <label>Photos (max 4)</label><input id="photos" type="file" accept="image/*" capture="environment" multiple><div id="preview" class="grid" style="margin-top:10px"></div>
+    <label>Description</label><textarea id="desc"></textarea>
+    <label>Location</label><select id="location"></select>
+    <label>Category</label><input id="category">
+    <label>Status</label><select id="status"><option value="open">Open</option><option value="resolved">Resolved</option></select>
+    <button class="primary" style="margin-top:14px;width:100%" onclick="saveIssue()">Save Issue</button>
+    <div id="issuemsg" class="muted" style="margin-top:8px"></div>
+  </div>
+</section>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
-const STORAGE_KEY='issue_report_pwa_v1';
-let state={projects:[]}, currentProjectId=null, currentIssueId=null;
+const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
+let currentProject=null,currentIssues=[],currentLocations=[];
 
-function load(){ try{state=JSON.parse(localStorage.getItem(STORAGE_KEY))||{projects:[]}}catch(e){state={projects:[]}} }
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function v(id){return document.getElementById(id)}
-function show(id){['projectsView','newProjectView','projectView','newIssueView','issueDetailView'].forEach(x=>v(x).classList.toggle('hidden',x!==id))}
-function currentProject(){return state.projects.find(p=>p.id===currentProjectId)}
-function esc(s=''){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function show(id){['auth','projects','newProject','project','locations','newIssue'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
+const el=id=>document.getElementById(id);
 
-function renderProjects(){
-  const el=v('projectsList');
-  if(!state.projects.length){el.innerHTML='<div class="empty">No projects yet.<br>Create your first project.</div>';return}
-  el.innerHTML=state.projects.map(p=>`<div class="card" onclick="openProject('${p.id}')">
-    <div class="row"><div class="grow"><h3>${esc(p.name)}</h3><div class="muted">${esc(p.location||'No location')} · ${p.issues.length} issue${p.issues.length===1?'':'s'}</div></div><div>›</div></div>
-  </div>`).join('');
-}
-function showNewProject(){show('newProjectView');v('projectName').focus()}
-function goProjects(){currentProjectId=null;renderProjects();show('projectsView')}
-function createProject(){
-  const name=v('projectName').value.trim(); if(!name)return alert('Please enter a project name.');
-  state.projects.unshift({id:crypto.randomUUID(),name,location:v('projectLocation').value.trim(),issues:[],createdAt:new Date().toISOString()});
-  save(); v('projectName').value='';v('projectLocation').value='';renderProjects();show('projectsView');
-}
-function openProject(id){currentProjectId=id;renderProject();show('projectView')}
-function goProject(){renderProject();show('projectView')}
-function renderProject(){
-  const p=currentProject(); if(!p)return goProjects();
-  v('projectTitle').textContent=p.name; v('projectMeta').textContent=p.location||'Project';
-  const el=v('issuesList');
-  if(!p.issues.length){el.innerHTML='<div class="empty">No issues yet.</div>';return}
-  el.innerHTML=[...p.issues].sort((a,b)=>a.number-b.number).map(i=>`
-    <div class="card issue" onclick="openIssue('${i.id}')">
-      ${i.photo?`<img class="thumb" src="${i.photo}">`:`<div class="thumb"></div>`}
-      <div><h3>#${String(i.number).padStart(3,'0')} · ${esc(i.description.slice(0,55))}${i.description.length>55?'…':''}</h3>
-      <div class="muted">${esc(i.location||i.category||'No location')}</div>
-      <div style="margin-top:8px"><span class="badge ${i.status==='Resolved'?'resolved':'open'}">${i.status}</span></div></div>
-      <div class="chev">›</div>
-    </div>`).join('');
-}
-function showNewIssue(){
-  v('issuePhoto').value='';v('photoPreview').src='';v('photoPreview').classList.add('hidden');
-  v('issueDescription').value='';v('issueLocation').value='';v('issueCategory').value='';v('issueStatus').value='Open';
-  show('newIssueView');
-}
-v('issuePhoto').addEventListener('change', async e=>{
-  const file=e.target.files[0]; if(!file)return;
-  const data=await fileToDataURL(file); v('photoPreview').src=data;v('photoPreview').classList.remove('hidden');
-});
-function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
-async function saveIssue(){
-  const p=currentProject(); const desc=v('issueDescription').value.trim(); if(!desc)return alert('Please enter a description.');
-  let photo=''; const file=v('issuePhoto').files[0]; if(file)photo=await fileToDataURL(file);
-  const next=(p.issues.reduce((m,i)=>Math.max(m,i.number),0)||0)+1;
-  p.issues.push({id:crypto.randomUUID(),number:next,description:desc,location:v('issueLocation').value.trim(),category:v('issueCategory').value.trim(),status:v('issueStatus').value,photo,createdAt:new Date().toISOString()});
-  save();renderProject();show('projectView');
-}
-function openIssue(id){
-  currentIssueId=id; const i=currentProject().issues.find(x=>x.id===id);
-  v('detailNumber').textContent='#'+String(i.number).padStart(3,'0');
-  v('detailCard').innerHTML=`${i.photo?`<img class="preview" src="${i.photo}">`:''}
-    <h2 style="margin-top:16px">${esc(i.description)}</h2>
-    <p class="muted"><b>Location:</b> ${esc(i.location||'-')}</p>
-    <p class="muted"><b>Category:</b> ${esc(i.category||'-')}</p>
-    <p><span class="badge ${i.status==='Resolved'?'resolved':'open'}">${i.status}</span></p>`;
-  show('issueDetailView');
-}
-function deleteCurrentIssue(){
-  if(!confirm('Delete this issue?'))return;
-  const p=currentProject();p.issues=p.issues.filter(i=>i.id!==currentIssueId);save();goProject();
-}
+async function boot(){const {data}=await sb.auth.getSession(); if(data.session) loadProjects(); else show('auth');}
+async function signUp(){const {error}=await sb.auth.signUp({email:el('email').value.trim(),password:el('password').value});el('authmsg').textContent=error?error.message:'Account created. Check email if confirmation is enabled.';}
+async function signIn(){const {error}=await sb.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)el('authmsg').textContent=error.message;else loadProjects();}
+async function signOut(){await sb.auth.signOut();show('auth');}
 
-async function exportPDF(){
-  const p=currentProject(); if(!p.issues.length)return alert('No issues to export.');
-  const {jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'});
-  const issues=[...p.issues].sort((a,b)=>a.number-b.number);
-  for(let idx=0;idx<issues.length;idx++){
-    if(idx>0)doc.addPage();
-    const i=issues[idx];
-    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('PROJECT ISSUE REPORT',15,16);
-    doc.setFontSize(20);doc.text(p.name,15,27);
-    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(p.location||'',15,34);
-    doc.setDrawColor(180);doc.line(15,39,195,39);
-    doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('ISSUE #'+String(i.number).padStart(3,'0'),15,51);
-    doc.setFontSize(10);doc.text('Status:',15,60);doc.setFont('helvetica','normal');doc.text(i.status,32,60);
-    doc.setFont('helvetica','bold');doc.text('Location:',15,67);doc.setFont('helvetica','normal');doc.text(i.location||'-',32,67);
-    doc.setFont('helvetica','bold');doc.text('Category:',15,74);doc.setFont('helvetica','normal');doc.text(i.category||'-',32,74);
-    doc.setFont('helvetica','bold');doc.text('Description',15,85);
-    doc.setFont('helvetica','normal');doc.setFontSize(11);
-    const lines=doc.splitTextToSize(i.description,180);doc.text(lines,15,93);
-    const y=93+lines.length*5+5;
-    if(i.photo){
-      try{
-        const props=doc.getImageProperties(i.photo);
-        const maxW=180,maxH=150,ratio=Math.min(maxW/props.width,maxH/props.height);
-        const w=props.width*ratio,h=props.height*ratio;
-        doc.addImage(i.photo, props.fileType||'JPEG', 15, Math.min(y,120), w,h);
-      }catch(e){}
-    }
-    doc.setFontSize(8);doc.setTextColor(120);doc.text('Created: '+new Date(i.createdAt).toLocaleString(),15,288);
-  }
-  doc.save((p.name||'project').replace(/[^a-z0-9]+/gi,'_')+'_issues.pdf');
-}
-load();renderProjects();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+function showNewProject(){show('newProject');}
+async function createProject(){const {data:u}=await sb.auth.getUser();const {error}=await sb.from('projects').insert({name:el('pname').value.trim(),venue:el('pvenue').value.trim(),owner_id:u.user.id});if(error)return alert(error.message);loadProjects();}
+async function loadProjects(){const {data,error}=await sb.from('projects').select('*').order('created_at',{ascending:false});if(error)return alert(error.message);el('projectList').innerHTML=(data||[]).map(p=>`<div class="card" data-id="${p.id}"><b>${p.name}</b><div class="muted">${p.venue||''}</div></div>`).join('')||'<div class="empty">No projects yet.</div>';el('projectList').querySelectorAll('[data-id]').forEach(c=>c.onclick=()=>openProject(data.find(p=>p.id===c.dataset.id)));show('projects');}
+async function openProject(p){currentProject=p;el('ptitle').textContent=p.name;el('pmeta').textContent=p.venue||'';const {data,error}=await sb.from('issues').select('*,locations(name),issue_photos(*)').eq('project_id',p.id).order('issue_number');if(error)return alert(error.message);currentIssues=data||[];el('issueList').innerHTML=currentIssues.map(i=>`<div class="card issue"><div class="thumb"></div><div><b>#${String(i.issue_number).padStart(3,'0')} ${i.description}</b><div class="muted">${i.locations?.name||'No location'}</div><span class="badge">${i.status}</span></div></div>`).join('')||'<div class="empty">No issues yet.</div>';show('project');}
+
+async function locations(){await loadLocations();el('locList').innerHTML=currentLocations.map(l=>`<div class="card">${l.name}</div>`).join('')||'<div class="empty">No locations yet.</div>';show('locations');}
+async function loadLocations(){const {data,error}=await sb.from('locations').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');if(error)return alert(error.message);currentLocations=data||[];}
+async function addLocation(){const name=el('locname').value.trim();if(!name)return;const {error}=await sb.from('locations').insert({project_id:currentProject.id,name});if(error)return alert(error.message);el('locname').value='';locations();}
+
+async function newIssue(){await loadLocations();el('location').innerHTML='<option value="">Select location</option>'+currentLocations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');el('desc').value='';el('category').value='';el('photos').value='';el('preview').innerHTML='';show('newIssue');}
+el('photos').addEventListener('change',e=>{let files=[...e.target.files];if(files.length>4){alert('Maximum 4 photos');files=files.slice(0,4)}el('preview').innerHTML='';files.forEach(f=>{let i=document.createElement('img');i.src=URL.createObjectURL(f);el('preview').appendChild(i)});});
+async function saveIssue(){const d=el('desc').value.trim();if(!d)return alert('Description required');const files=[...el('photos').files].slice(0,4);el('issuemsg').textContent='Saving...';const {data:issue,error}=await sb.from('issues').insert({project_id:currentProject.id,issue_number:0,description:d,location_id:el('location').value||null,category:el('category').value||null,status:el('status').value}).select().single();if(error){el('issuemsg').textContent=error.message;return}const {data:u}=await sb.auth.getUser();for(let n=0;n<files.length;n++){const path=`${currentProject.id}/${issue.id}/${crypto.randomUUID()}.jpg`;const {error:ue}=await sb.storage.from('issue-photos').upload(path,files[n],{contentType:files[n].type||'image/jpeg'});if(ue){el('issuemsg').textContent=ue.message;return}await sb.from('issue_photos').insert({issue_id:issue.id,storage_path:path,position:n+1,created_by:u.user.id});}openProject(currentProject);}
+
+async function exportPDF(){if(!currentIssues.length)return alert('No issues to export');const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});for(let x=0;x<currentIssues.length;x++){if(x)doc.addPage();const i=currentIssues[x];doc.setFontSize(18);doc.text(currentProject.name,15,20);doc.setFontSize(14);doc.text('ISSUE #'+String(i.issue_number).padStart(3,'0'),15,34);doc.setFontSize(10);doc.text('Location: '+(i.locations?.name||'-'),15,45);doc.text('Status: '+i.status,15,52);doc.text('Category: '+(i.category||'-'),15,59);doc.text(doc.splitTextToSize(i.description,180),15,72);}doc.save((currentProject.name||'project').replace(/[^a-z0-9]+/gi,'_')+'_issues.pdf');}
+boot();
 </script>
 </body>
 </html>
