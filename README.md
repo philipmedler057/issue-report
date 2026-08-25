@@ -1,14 +1,17 @@
-# Issue Report Supabase V3
+# Issue Report Supabase V4
 
-Changes in V3:
-- Unlimited project locations (no application limit)
-- Four separate photo capture/upload rows
-- Delete button directly on the issue overview
-- Deleting an issue also removes its associated files from private Supabase Storage
+Fixes:
+- Removed the misleading Open pill from the issue list.
+- Entire issue card opens a detail page.
+- Four independent photo capture rows remain.
+- iPhone images are converted client-side to JPEG before upload (important for HEIC camera photos).
+- Issue thumbnails and detail photos use signed private Supabase URLs.
+- PDF export now loads private photos and places up to four images in a 2x2 grid.
+- Delete remains available on the overview and detail page.
+- Locations remain unlimited.
 
 Deploy:
-1. Extract this ZIP.
-2. Upload/replace `index.html`, `manifest.json`, `sw.js`, `icon.svg`, and `README.md` in the GitHub repository.
-3. Commit to `main`.
-4. GitHub Pages will redeploy automatically.
-5. If the old version remains cached, open the site once with `?v=3`.
+1. Extract ZIP.
+2. Replace index.html, manifest.json, sw.js, icon.svg and README.md in GitHub.
+3. Commit to main.
+4. Open the site once with ?v=4 if Safari still shows the old cached version.
