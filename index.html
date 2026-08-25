@@ -20,6 +20,10 @@ button{border:0;border-radius:15px;padding:12px 15px;font-weight:750;font-size:1
 input,textarea,select{width:100%;background:#0a1626;color:white;border:1px solid var(--border);border-radius:14px;padding:13px 14px;font-size:16px}
 textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px;color:var(--muted);font-size:14px}
 .empty{text-align:center;padding:38px;color:var(--muted)}
+.location-card{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.location-card:active{transform:scale(.995)}
+.count-pill{min-width:34px;text-align:center;padding:5px 9px;border-radius:999px;background:#1b2c46;color:#c9d7ea;font-size:12px;font-weight:700}
+.section-label{font-size:13px;color:var(--muted);margin:8px 0 10px}
 .issue-card{display:grid;grid-template-columns:82px 1fr auto;gap:13px;align-items:center;cursor:pointer;transition:transform .08s ease}
 .issue-card:active{transform:scale(.99)} .thumb{width:82px;height:68px;border-radius:13px;object-fit:cover;background:#0b1727}
 .issue-title{font-size:17px;font-weight:760;line-height:1.25} .delete-small{padding:9px 12px;font-size:13px}
@@ -57,8 +61,15 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 
 <section id="project" class="hidden">
   <div class="top"><button class="secondary" onclick="loadProjects()">← Projects</button><div><div id="pmeta" class="muted"></div><div id="ptitle" class="title"></div></div></div>
-  <div class="toolbar"><button class="primary" onclick="newIssue()">+ New Issue</button><button class="secondary" onclick="locations()">Locations</button><button class="secondary" onclick="exportPDF()">Export PDF</button></div>
-  <div id="issueList"></div>
+  <div class="toolbar"><button class="secondary" onclick="locations()">Manage Locations</button><button class="secondary" onclick="exportPDF()">Export PDF</button><button class="danger" onclick="deleteProject()">Delete Project</button></div>
+  <div class="section-label">Select a location</div><div id="projectLocationList"></div>
+</section>
+
+
+<section id="locationIssues" class="hidden">
+  <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Locations</button><div><div class="muted" id="locationProjectName"></div><div id="locationIssueTitle" class="title"></div></div></div>
+  <div class="toolbar"><button class="primary" onclick="newIssueForCurrentLocation()">+ New Issue</button></div>
+  <div id="locationIssueList"></div>
 </section>
 
 <section id="issueDetail" class="hidden">
@@ -102,9 +113,9 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
 const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
-let currentProject=null,currentIssues=[],currentLocations=[],currentIssue=null;
+let currentProject=null,currentIssues=[],currentLocations=[],currentIssue=null,currentIssueLocationId=null;
 const el=id=>document.getElementById(id);
-function show(id){['auth','projects','newProject','project','issueDetail','locations','newIssue'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
+function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','locations','newIssue'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
 function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
 async function boot(){const {data}=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
@@ -130,25 +141,53 @@ async function openProject(p){
  currentProject=p;el('ptitle').textContent=p.name;el('pmeta').textContent=p.venue||'';
  const {data,error}=await sb.from('issues').select('*,locations(name),issue_photos(*)').eq('project_id',p.id).order('issue_number');
  if(error)return alert(error.message); currentIssues=data||[];
- el('issueList').innerHTML=currentIssues.map(i=>{
+ await loadLocations();
+
+ const cards=currentLocations.map(loc=>{
+   const count=currentIssues.filter(i=>i.location_id===loc.id).length;
+   return `<div class="card location-card" data-location-open="${loc.id}">
+     <div><div class="issue-title">${safe(loc.name)}</div><div class="muted">${count} issue${count===1?'':'s'}</div></div>
+     <div class="count-pill">${count}</div>
+   </div>`;
+ }).join('');
+
+ const noLocationCount=currentIssues.filter(i=>!i.location_id).length;
+ const noLocationCard=noLocationCount?`<div class="card location-card" data-location-open="">
+   <div><div class="issue-title">No Location</div><div class="muted">${noLocationCount} issue${noLocationCount===1?'':'s'}</div></div>
+   <div class="count-pill">${noLocationCount}</div>
+ </div>`:'';
+
+ el('projectLocationList').innerHTML=(cards+noLocationCard)||'<div class="empty">No locations yet. Use “Manage Locations” to add your first location.</div>';
+ el('projectLocationList').querySelectorAll('[data-location-open]').forEach(card=>card.onclick=()=>openLocationIssues(card.dataset.locationOpen||null));
+ show('project');
+}
+
+async function openLocationIssues(locationId){
+ const loc=locationId?currentLocations.find(l=>l.id===locationId):null;
+ currentIssueLocationId=locationId||null;
+ el('locationProjectName').textContent=currentProject.name;
+ el('locationIssueTitle').textContent=loc?loc.name:'No Location';
+
+ const issues=currentIssues.filter(i=>(i.location_id||null)===(currentIssueLocationId||null));
+ el('locationIssueList').innerHTML=issues.map(i=>{
    const first=(i.issue_photos||[]).sort((a,b)=>a.position-b.position)[0];
    return `<div class="card issue-card" data-open="${i.id}">
      ${first?`<img class="thumb" data-photo-path="${safe(first.storage_path)}">`:'<div class="thumb"></div>'}
-     <div><div class="issue-title">#${String(i.issue_number).padStart(3,'0')} ${safe(i.description)}</div><div class="muted">${safe(i.locations?.name||'No location')}</div></div>
+     <div><div class="issue-title">#${String(i.issue_number).padStart(3,'0')} ${safe(i.description)}</div></div>
      <div class="issue-actions"><button class="danger delete-small" data-delete="${i.id}">Delete</button></div>
    </div>`;
- }).join('')||'<div class="empty">No issues yet.</div>';
+ }).join('')||'<div class="empty">No issues in this location yet.</div>';
 
- for(const img of el('issueList').querySelectorAll('[data-photo-path]')){
+ for(const img of el('locationIssueList').querySelectorAll('[data-photo-path]')){
    const {data:signed}=await sb.storage.from('issue-photos').createSignedUrl(img.dataset.photoPath,3600);
    if(signed?.signedUrl)img.src=signed.signedUrl;
  }
- el('issueList').querySelectorAll('[data-open]').forEach(card=>card.onclick=e=>{
+ el('locationIssueList').querySelectorAll('[data-open]').forEach(card=>card.onclick=e=>{
    if(e.target.closest('[data-delete]'))return;
    openIssue(card.dataset.open);
  });
- el('issueList').querySelectorAll('[data-delete]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();deleteIssue(btn.dataset.delete);});
- show('project');
+ el('locationIssueList').querySelectorAll('[data-delete]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();deleteIssue(btn.dataset.delete);});
+ show('locationIssues');
 }
 
 async function openIssue(issueId){
@@ -174,14 +213,32 @@ async function deleteIssue(issueId){
  const paths=(issue.issue_photos||[]).map(p=>p.storage_path).filter(Boolean);
  if(paths.length){const {error:se}=await sb.storage.from('issue-photos').remove(paths);if(se)return alert('Could not delete photos: '+se.message);}
  const {error}=await sb.from('issues').delete().eq('id',issueId);if(error)return alert(error.message);
- await openProject(currentProject);
+ if(currentIssueLocationId!==undefined && currentIssueLocationId!==null){await openProject(currentProject);await openLocationIssues(currentIssueLocationId);}else{await openProject(currentProject);}
 }
 
 async function loadLocations(){
  const {data,error}=await sb.from('locations').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');
  if(error)return alert(error.message);currentLocations=data||[];
 }
-async function locations(){await loadLocations();el('locCount').textContent=`${currentLocations.length} location${currentLocations.length===1?'':'s'}`;el('locList').innerHTML=currentLocations.map(l=>`<div class="card">${safe(l.name)}</div>`).join('')||'<div class="empty">No locations yet.</div>';show('locations');}
+async function locations(){
+ await loadLocations();
+ el('locCount').textContent=`${currentLocations.length} location${currentLocations.length===1?'':'s'}`;
+ el('locList').innerHTML=currentLocations.map(l=>`<div class="card row"><div class="grow">${safe(l.name)}</div><button class="danger" data-delete-location="${l.id}">Delete</button></div>`).join('')||'<div class="empty">No locations yet.</div>';
+ el('locList').querySelectorAll('[data-delete-location]').forEach(btn=>btn.onclick=()=>deleteLocation(btn.dataset.deleteLocation));
+ show('locations');
+}
+async function deleteLocation(locationId){
+ const loc=currentLocations.find(l=>l.id===locationId); if(!loc)return;
+ const linked=currentIssues.filter(i=>i.location_id===locationId);
+ if(linked.length){
+   if(!confirm(`Delete location "${loc.name}"? ${linked.length} issue(s) will remain, but without a location.`))return;
+ } else {
+   if(!confirm(`Delete location "${loc.name}"?`))return;
+ }
+ const {error}=await sb.from('locations').delete().eq('id',locationId);
+ if(error)return alert(error.message);
+ await locations();
+}
 async function addLocation(){const name=el('locname').value.trim();if(!name)return;const {error}=await sb.from('locations').insert({project_id:currentProject.id,name});if(error)return alert(error.message);el('locname').value='';locations();}
 
 function previewInput(inputId,previewId){
@@ -197,6 +254,10 @@ function resetPhotoSlot(n){
  const input=el('photo'+n);input.value='';
  const old=el('ph'+n);
  if(old && old.tagName==='IMG'){const d=document.createElement('div');d.id='ph'+n;d.className='photo-placeholder';d.textContent='Photo '+n;old.replaceWith(d);previewInput('photo'+n,'ph'+n);}
+}
+async function newIssueForCurrentLocation(){
+ await newIssue();
+ el('location').value=currentIssueLocationId||'';
 }
 async function newIssue(){
  await loadLocations();el('location').innerHTML='<option value="">Select location</option>'+currentLocations.map(l=>`<option value="${l.id}">${safe(l.name)}</option>`).join('');
@@ -241,7 +302,7 @@ async function saveIssue(){
      if(re)throw re;
    }catch(err){el('issuemsg').textContent='Photo error: '+(err.message||err);return;}
  }
- await openProject(currentProject);
+ await openProject(currentProject);if(currentIssueLocationId!==undefined){await openLocationIssues(el('location').value||null);}
 }
 
 async function urlToJpegDataUrl(url){
@@ -254,6 +315,21 @@ async function urlToJpegDataUrl(url){
    };
    img.onerror=()=>reject(new Error('Could not load photo for PDF'));img.src=url;
  });
+}
+
+async function deleteProject(){
+ if(!currentProject)return;
+ if(!confirm(`Delete project "${currentProject.name}" including all issues, photos and locations? This cannot be undone.`))return;
+
+ const paths=currentIssues.flatMap(i=>(i.issue_photos||[]).map(p=>p.storage_path)).filter(Boolean);
+ if(paths.length){
+   const {error:se}=await sb.storage.from('issue-photos').remove(paths);
+   if(se)return alert('Could not delete project photos: '+se.message);
+ }
+ const {error}=await sb.from('projects').delete().eq('id',currentProject.id);
+ if(error)return alert(error.message);
+ currentProject=null;currentIssues=[];currentLocations=[];
+ await loadProjects();
 }
 
 async function exportPDF(){
