@@ -1,9 +1,8 @@
 {
-  "id": "./?v=9pwa",
+  "id": "./?v=10pin",
   "name": "Issue Report",
   "short_name": "Issue Report",
-  "description": "Private multi-user project issue reporting",
-  "start_url": "./?v=9pwa",
+  "start_url": "./?v=10pin",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

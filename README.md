@@ -1,21 +1,14 @@
-# Issue Report V9 PWA Fix
+# Issue Report V10 PIN
 
-This build fixes the iPhone Home Screen launch target.
+Temporary test gate:
+- 4-digit code only
+- Test code: 1111
+- Code approval is remembered on the device
+- No email/password screen in the UI
+- JavaScript syntax checked before packaging
 
-Important changes:
-- PWA start_url is explicitly `./?v=9pwa`
-- PWA id is also versioned
-- Service worker uses network-first navigation
-- Old app-shell caches are deleted during activation
-- Existing V9 authentication/session logic is unchanged
+Important: This PIN is only a temporary local app gate. Supabase private data still requires the previously established authenticated Supabase session. It is not a secure replacement for multi-user authentication.
 
-Deploy ALL files from this package to GitHub and commit.
-
-Then on iPhone:
-1. Delete the old Issue Report Home Screen icon.
-2. Open `https://philipmedler057.github.io/issue-report/?v=9pwa` in Safari.
-3. Confirm V9 works there.
-4. Share → Add to Home Screen.
-5. Open the NEW icon.
-
-Note: iOS may treat the installed PWA as its own app context. If it does not inherit the Safari Supabase session, you may need to sign in once from the installed app. After that Supabase should persist the session there.
+Deploy ALL files to GitHub and commit.
+Open: https://philipmedler057.github.io/issue-report/?v=10pin
+For iPhone: delete old Home Screen icon, open that URL in Safari, then Add to Home Screen.
