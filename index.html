@@ -50,18 +50,8 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 </head>
 <body>
 <div class="app">
-<section id="auth">
-  <div class="card" style="max-width:460px;margin:60px auto">
-    <div class="muted">Issue Report</div><div class="title">Sign in</div>
-    <label>Email</label><input id="email" type="email">
-    <label>Password</label><input id="password" type="password">
-    <div class="toolbar"><button class="primary grow" onclick="signIn()">Sign in</button><button class="secondary grow" onclick="signUp()">Create account</button></div>
-    <div id="authmsg" class="muted"></div>
-  </div>
-</section>
-
-<section id="projects" class="hidden">
-  <div class="top"><div><div class="muted">Issue Report</div><div class="title">Projects</div></div><button class="secondary" onclick="signOut()">Sign out</button></div>
+<section id="projects">
+  <div class="top"><div><div class="muted">Issue Report</div><div class="title">Projects</div></div></div>
   <div class="toolbar"><button class="primary" onclick="showNewProject()">+ New Project</button></div>
   <div id="projectList"></div>
 </section>
@@ -167,14 +157,13 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
 let currentProject=null,currentIssues=[],currentLocations=[],currentCategories=[],currentIssue=null,currentIssueLocationId=null,currentExportType='pdf';
 const el=id=>document.getElementById(id);
-function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','members','locations','newIssue,'categories'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
+function show(id){['projects','newProject','project','locationIssues','issueDetail','members','locations','newIssue,'categories'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
 function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
-async function boot(){const {data}=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
-async function signUp(){const {error}=await sb.auth.signUp({email:el('email').value.trim(),password:el('password').value});el('authmsg').textContent=error?error.message:'Account created. Check email if confirmation is enabled.';}
-async function signIn(){const {error}=await sb.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)el('authmsg').textContent=error.message;else loadProjects();}
-async function signOut(){await sb.auth.signOut();show('auth');}
-
+async function boot(){ await loadProjects(); }
+=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
+=await sb.auth.signUp({email:el('email').value.trim(),password:el('password').value});el('authmsg').textContent=error?error.message:'Account created. Check email if confirmation is enabled.';}
+=await sb.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)el('authmsg').textContent=error.message;else loadProjects();}
 function showNewProject(){show('newProject')}
 async function createProject(){
  const name=el('pname').value.trim();if(!name)return alert('Project name required.');
