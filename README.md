@@ -1,8 +1,13 @@
-# Issue Report V8 - No Login
+# Issue Report V9 Stable
 
-Temporary development build:
-- Sign-in/password page bypassed.
-- App opens directly on Projects.
-- Existing Categories/PWA UI remains.
+- Restores proper Supabase authentication.
+- Existing valid session opens directly on Projects.
+- Sign In only appears when there is no valid session.
+- Fixes the V8 JavaScript syntax error.
+- Categories, Members, Locations, PDF/Word and PWA setup remain.
+- Inline JavaScript syntax checked before packaging.
 
-Important: Supabase still has its security rules. If an operation requires an authenticated user, Supabase may reject it. This build is intended to remove the login screen temporarily while the app UI is being developed.
+No Supabase SQL needs to be run again.
+
+GitHub: replace index.html and sw.js, then commit.
+Test URL: ?v=9stable
