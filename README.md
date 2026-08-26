@@ -1,17 +1,15 @@
-# Issue Report Supabase V5
+# Issue Report Supabase V7 — Multi User
 
-Changes:
-- Projects can be deleted.
-- Locations can be deleted.
-- Project landing page now shows locations first.
-- Each location shows its issue count.
-- Tap a location to see only the issues assigned to it.
-- “No Location” is shown automatically if unassigned issues exist.
-- Add new issues directly from the selected location.
-- Existing photo/detail/PDF behavior from V4 remains.
+1. Run SUPABASE_MULTI_USER.sql once in Supabase SQL Editor.
+2. Upload the normal app files to GitHub and commit.
+3. Open a project and use Members.
 
-Deploy:
-1. Extract ZIP.
-2. Replace index.html, manifest.json, sw.js, icon.svg and README.md in GitHub.
-3. Commit to main.
-4. If Safari still shows an old version, open the app once with ?v=5.
+Roles:
+- Admin: manage project and members
+- User: create/edit issues
+- Viewer: read-only
+
+A colleague must first create an account in the app, then an Admin can add their email.
+The project owner cannot be removed or downgraded.
+
+If Safari caches the old app, open once with ?v=7.

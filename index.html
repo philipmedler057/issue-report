@@ -24,6 +24,11 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 .location-card:active{transform:scale(.995)}
 .count-pill{min-width:34px;text-align:center;padding:5px 9px;border-radius:999px;background:#1b2c46;color:#c9d7ea;font-size:12px;font-weight:700}
 .section-label{font-size:13px;color:var(--muted);margin:8px 0 10px}
+.modal-backdrop{position:fixed;inset:0;background:#0009;display:flex;align-items:flex-end;justify-content:center;padding:18px;z-index:999}
+.modal-card{width:min(620px,100%);max-height:82vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:18px;box-shadow:0 24px 80px #000a}
+.check-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.check-row input{width:22px;height:22px;flex:0 0 auto}
+.modal-title{font-size:22px;font-weight:800;margin-bottom:4px}
 .issue-card{display:grid;grid-template-columns:82px 1fr auto;gap:13px;align-items:center;cursor:pointer;transition:transform .08s ease}
 .issue-card:active{transform:scale(.99)} .thumb{width:82px;height:68px;border-radius:13px;object-fit:cover;background:#0b1727}
 .issue-title{font-size:17px;font-weight:760;line-height:1.25} .delete-small{padding:9px 12px;font-size:13px}
@@ -34,6 +39,9 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 .detail-kv{padding:10px 0;border-bottom:1px solid var(--border)} .detail-kv:last-child{border-bottom:0}
 .detail-label{font-size:12px;color:var(--muted);margin-bottom:3px} .detail-value{font-size:16px}
 @media(max-width:560px){.top{align-items:flex-start}.issue-card{grid-template-columns:72px 1fr}.thumb{width:72px;height:62px}.issue-actions{grid-column:1/-1;justify-self:end}}
+.member-row{display:grid;grid-template-columns:1fr 135px auto;gap:10px;align-items:center}
+.owner-pill{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:999px;background:#243653;color:#bcd0ea;font-size:11px;font-weight:700}
+@media(max-width:560px){.member-row{grid-template-columns:1fr}.member-row button{width:100%}}
 </style>
 </head>
 <body>
@@ -61,7 +69,7 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 
 <section id="project" class="hidden">
   <div class="top"><button class="secondary" onclick="loadProjects()">← Projects</button><div><div id="pmeta" class="muted"></div><div id="ptitle" class="title"></div></div></div>
-  <div class="toolbar"><button class="secondary" onclick="locations()">Manage Locations</button><button class="secondary" onclick="exportPDF()">Export PDF</button><button class="danger" onclick="deleteProject()">Delete Project</button></div>
+  <div class="toolbar"><button class="secondary" onclick="locations()">Manage Locations</button><button class="secondary" onclick="showMembers()">Members</button><button class="secondary" onclick="openExportPicker('pdf')">Export PDF</button><button class="secondary" onclick="openExportPicker('word')">Export Word</button><button class="danger" onclick="deleteProject()">Delete Project</button></div>
   <div class="section-label">Select a location</div><div id="projectLocationList"></div>
 </section>
 
@@ -84,6 +92,18 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
   <button id="detailDelete" class="danger">Delete Issue</button>
 </section>
 
+
+<section id="members" class="hidden">
+  <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">Members</div></div>
+  <div class="card">
+    <div class="muted">The user must create an account in the app first.</div>
+    <label>Email</label><input id="memberEmail" type="email" placeholder="colleague@company.com">
+    <label>Role</label><select id="memberRole"><option value="user">User — create & edit issues</option><option value="viewer">Viewer — view only</option><option value="admin">Admin — manage project</option></select>
+    <button class="primary" style="width:100%;margin-top:14px" onclick="addMember()">Add Member</button>
+    <div id="memberMsg" class="muted" style="margin-top:8px"></div>
+  </div>
+  <div id="memberList"></div>
+</section>
 <section id="locations" class="hidden">
   <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">Locations</div></div>
   <div class="card"><div class="muted">Add as many locations as needed.</div><label>Add location</label><div class="row"><input id="locname"><button class="primary" onclick="addLocation()">Add</button></div></div>
@@ -107,15 +127,31 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
     <div id="issuemsg" class="muted" style="margin-top:8px"></div>
   </div>
 </section>
+<div id="exportModal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-title" id="exportModalTitle">Export Report</div>
+    <div class="muted">Choose which locations should be included.</div>
+    <label class="check-row">
+      <input id="exportAll" type="checkbox" checked onchange="toggleExportAll()">
+      <div><b>All Locations</b><div class="muted">Include the complete project report</div></div>
+    </label>
+    <div id="exportLocationChoices"></div>
+    <div class="toolbar" style="margin-top:18px">
+      <button class="secondary grow" onclick="closeExportPicker()">Cancel</button>
+      <button class="primary grow" id="exportConfirmBtn" onclick="confirmExport()">Export</button>
+    </div>
+  </div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script>
 const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
-let currentProject=null,currentIssues=[],currentLocations=[],currentIssue=null,currentIssueLocationId=null;
+let currentProject=null,currentIssues=[],currentLocations=[],currentIssue=null,currentIssueLocationId=null,currentExportType='pdf';
 const el=id=>document.getElementById(id);
-function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','locations','newIssue'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
+function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','members','locations','newIssue'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
 function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
 async function boot(){const {data}=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
@@ -216,6 +252,7 @@ async function deleteIssue(issueId){
  if(currentIssueLocationId!==undefined && currentIssueLocationId!==null){await openProject(currentProject);await openLocationIssues(currentIssueLocationId);}else{await openProject(currentProject);}
 }
 
+\nasync function showMembers(){\n const {data,error}=await sb.rpc('get_project_members',{p_project_id:currentProject.id});\n if(error){el('memberList').innerHTML='<div class="card"><div class="muted">Run SUPABASE_MULTI_USER.sql in Supabase first.</div></div>';show('members');return;}\n el('memberList').innerHTML=(data||[]).map(m=>`<div class="card member-row"><div><b>${safe(m.email)}</b>${m.is_owner?'<span class="owner-pill">OWNER</span>':''}<div class="muted">${m.role}</div></div><select data-role-user="${m.user_id}" ${m.is_owner?'disabled':''}><option value="admin" ${m.role==='admin'?'selected':''}>Admin</option><option value="user" ${m.role==='user'?'selected':''}>User</option><option value="viewer" ${m.role==='viewer'?'selected':''}>Viewer</option></select>${m.is_owner?'<div></div>':`<button class="danger" data-remove-user="${m.user_id}">Remove</button>`}</div>`).join('')||'<div class="empty">No members found.</div>';\n el('memberList').querySelectorAll('[data-role-user]').forEach(s=>s.onchange=()=>changeMemberRole(s.dataset.roleUser,s.value));\n el('memberList').querySelectorAll('[data-remove-user]').forEach(b=>b.onclick=()=>removeMember(b.dataset.removeUser));\n show('members');\n}\nasync function addMember(){\n const email=el('memberEmail').value.trim();if(!email)return alert('Enter an email address.');\n el('memberMsg').textContent='Adding member...';\n const {data,error}=await sb.rpc('add_project_member_by_email',{p_project_id:currentProject.id,p_email:email,p_role:el('memberRole').value});\n if(error){el('memberMsg').textContent=error.message;return;}\n el('memberEmail').value='';el('memberMsg').textContent=data||'Member added.';await showMembers();\n}\nasync function changeMemberRole(userId,role){\n const {error}=await sb.rpc('update_project_member_role',{p_project_id:currentProject.id,p_user_id:userId,p_role:role});\n if(error){alert(error.message);await showMembers();}\n}\nasync function removeMember(userId){\n if(!confirm('Remove this user from the project?'))return;\n const {error}=await sb.rpc('remove_project_member',{p_project_id:currentProject.id,p_user_id:userId});\n if(error)return alert(error.message);await showMembers();\n}\n
 async function loadLocations(){
  const {data,error}=await sb.from('locations').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');
  if(error)return alert(error.message);currentLocations=data||[];
@@ -317,6 +354,56 @@ async function urlToJpegDataUrl(url){
  });
 }
 
+
+function openExportPicker(type){
+ currentExportType=type;
+ el('exportModalTitle').textContent=type==='pdf'?'Export PDF':'Export Word';
+ el('exportConfirmBtn').textContent=type==='pdf'?'Export PDF':'Export Word';
+
+ const noLocCount=currentIssues.filter(i=>!i.location_id).length;
+ el('exportLocationChoices').innerHTML=
+   currentLocations.map(l=>{
+     const count=currentIssues.filter(i=>i.location_id===l.id).length;
+     return `<label class="check-row">
+       <input type="checkbox" class="export-location" value="${l.id}" checked disabled>
+       <div><b>${safe(l.name)}</b><div class="muted">${count} issue${count===1?'':'s'}</div></div>
+     </label>`;
+   }).join('') +
+   (noLocCount?`<label class="check-row">
+     <input type="checkbox" class="export-location" value="__NO_LOCATION__" checked disabled>
+     <div><b>No Location</b><div class="muted">${noLocCount} issue${noLocCount===1?'':'s'}</div></div>
+   </label>`:'');
+
+ el('exportAll').checked=true;
+ el('exportModal').classList.remove('hidden');
+}
+
+function closeExportPicker(){
+ el('exportModal').classList.add('hidden');
+}
+
+function toggleExportAll(){
+ const all=el('exportAll').checked;
+ el('exportLocationChoices').querySelectorAll('.export-location').forEach(cb=>{
+   cb.disabled=all;
+   if(all)cb.checked=true;
+ });
+}
+
+function selectedExportIssues(){
+ if(el('exportAll').checked)return [...currentIssues];
+ const selected=[...el('exportLocationChoices').querySelectorAll('.export-location:checked')].map(cb=>cb.value);
+ return currentIssues.filter(i=>!i.location_id ? selected.includes('__NO_LOCATION__') : selected.includes(i.location_id));
+}
+
+async function confirmExport(){
+ const issues=selectedExportIssues();
+ if(!issues.length)return alert('Please select at least one location containing issues.');
+ closeExportPicker();
+ if(currentExportType==='word')await exportWord(issues);
+ else await exportPDF(issues);
+}
+
 async function deleteProject(){
  if(!currentProject)return;
  if(!confirm(`Delete project "${currentProject.name}" including all issues, photos and locations? This cannot be undone.`))return;
@@ -332,11 +419,11 @@ async function deleteProject(){
  await loadProjects();
 }
 
-async function exportPDF(){
- if(!currentIssues.length)return alert('No issues to export.');
+async function exportPDF(exportIssues=null){
+ const issuesToExport=exportIssues||currentIssues;if(!issuesToExport.length)return alert('No issues to export.');
  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
- for(let x=0;x<currentIssues.length;x++){
-   if(x)doc.addPage();const i=currentIssues[x];
+ for(let x=0;x<issuesToExport.length;x++){
+   if(x)doc.addPage();const i=issuesToExport[x];
    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('PROJECT ISSUE REPORT',15,15);
    doc.setFontSize(19);doc.text(currentProject.name,15,27);
    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(currentProject.venue||'',15,34);doc.line(15,39,195,39);
@@ -361,6 +448,71 @@ async function exportPDF(){
  }
  doc.save((currentProject.name||'project').replace(/[^a-z0-9]+/gi,'_')+'_issues.pdf');
 }
+
+async function signedPhotoBytes(path){
+ const {data:signed,error}=await sb.storage.from('issue-photos').createSignedUrl(path,300);
+ if(error||!signed?.signedUrl)return null;
+ const res=await fetch(signed.signedUrl);
+ if(!res.ok)return null;
+ return new Uint8Array(await res.arrayBuffer());
+}
+
+async function exportWord(exportIssues){
+ const {Document,Packer,Paragraph,TextRun,ImageRun,Table,TableRow,TableCell,WidthType,AlignmentType,PageBreak}=window.docx;
+ const children=[];
+
+ for(let idx=0;idx<exportIssues.length;idx++){
+   const i=exportIssues[idx];
+
+   children.push(
+     new Paragraph({children:[new TextRun({text:'PROJECT ISSUE REPORT',bold:true,size:20})]}),
+     new Paragraph({children:[new TextRun({text:currentProject.name,bold:true,size:34})]}),
+     new Paragraph({children:[new TextRun({text:currentProject.venue||'',size:18,color:'666666'})]}),
+     new Paragraph({text:''}),
+     new Paragraph({children:[new TextRun({text:'ISSUE #'+String(i.issue_number).padStart(3,'0'),bold:true,size:28})]}),
+     new Paragraph({children:[new TextRun({text:'Location: ',bold:true}),new TextRun(i.locations?.name||'-')]}),
+     new Paragraph({children:[new TextRun({text:'Category: ',bold:true}),new TextRun(i.category||'-')]}),
+     new Paragraph({children:[new TextRun({text:'Status: ',bold:true}),new TextRun(i.status||'-')]}),
+     new Paragraph({text:''}),
+     new Paragraph({children:[new TextRun({text:'Description',bold:true})]}),
+     new Paragraph({text:i.description||''}),
+     new Paragraph({text:''})
+   );
+
+   const photos=(i.issue_photos||[]).sort((a,b)=>a.position-b.position).slice(0,4);
+   const runs=[];
+   for(const p of photos){
+     try{
+       const data=await signedPhotoBytes(p.storage_path);
+       if(data)runs.push(new ImageRun({data,transformation:{width:280,height:210}}));
+     }catch(e){}
+   }
+
+   if(runs.length){
+     const rows=[];
+     for(let r=0;r<runs.length;r+=2){
+       rows.push(new TableRow({children:[
+         new TableCell({width:{size:50,type:WidthType.PERCENTAGE},children:[new Paragraph({alignment:AlignmentType.CENTER,children:[runs[r]]})]}),
+         new TableCell({width:{size:50,type:WidthType.PERCENTAGE},children:[new Paragraph({alignment:AlignmentType.CENTER,children:runs[r+1]?[runs[r+1]]:[]})]})
+       ]}));
+     }
+     children.push(new Table({width:{size:100,type:WidthType.PERCENTAGE},rows}));
+   }
+
+   children.push(new Paragraph({text:'Created: '+new Date(i.created_at).toLocaleString()}));
+   if(idx<exportIssues.length-1)children.push(new Paragraph({children:[new PageBreak()]}));
+ }
+
+ const doc=new Document({sections:[{children}]});
+ const blob=await Packer.toBlob(doc);
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download=(currentProject.name||'project').replace(/[^a-z0-9]+/gi,'_')+'_issues.docx';
+ document.body.appendChild(a);
+ a.click();
+ setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+
 boot();
 </script>
 </body>
