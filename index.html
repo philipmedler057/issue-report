@@ -196,6 +196,32 @@ async function boot(){
  }
 }
 
+function showNewProject(){
+ show('newProject');
+}
+
+async function createProject(){
+ const name=el('pname').value.trim();
+ if(!name)return alert('Project name required.');
+
+ const {data:u,error:userError}=await sb.auth.getUser();
+ if(userError || !u?.user){
+   return alert('No active Supabase user session. Please sign in once in the browser before creating private projects.');
+ }
+
+ const {error}=await sb.from('projects').insert({
+   name,
+   venue:el('pvenue').value.trim(),
+   owner_id:u.user.id
+ });
+
+ if(error)return alert(error.message);
+
+ el('pname').value='';
+ el('pvenue').value='';
+ await loadProjects();
+}
+
 async function loadProjects(){
  const {data,error}=await sb.from('projects').select('*').order('created_at',{ascending:false});
  if(error)return alert(error.message);
