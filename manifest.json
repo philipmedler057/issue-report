@@ -1,8 +1,9 @@
 {
+  "id": "./?v=9pwa",
   "name": "Issue Report",
   "short_name": "Issue Report",
   "description": "Private multi-user project issue reporting",
-  "start_url": "./",
+  "start_url": "./?v=9pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

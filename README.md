@@ -1,13 +1,21 @@
-# Issue Report V9 Stable
+# Issue Report V9 PWA Fix
 
-- Restores proper Supabase authentication.
-- Existing valid session opens directly on Projects.
-- Sign In only appears when there is no valid session.
-- Fixes the V8 JavaScript syntax error.
-- Categories, Members, Locations, PDF/Word and PWA setup remain.
-- Inline JavaScript syntax checked before packaging.
+This build fixes the iPhone Home Screen launch target.
 
-No Supabase SQL needs to be run again.
+Important changes:
+- PWA start_url is explicitly `./?v=9pwa`
+- PWA id is also versioned
+- Service worker uses network-first navigation
+- Old app-shell caches are deleted during activation
+- Existing V9 authentication/session logic is unchanged
 
-GitHub: replace index.html and sw.js, then commit.
-Test URL: ?v=9stable
+Deploy ALL files from this package to GitHub and commit.
+
+Then on iPhone:
+1. Delete the old Issue Report Home Screen icon.
+2. Open `https://philipmedler057.github.io/issue-report/?v=9pwa` in Safari.
+3. Confirm V9 works there.
+4. Share → Add to Home Screen.
+5. Open the NEW icon.
+
+Note: iOS may treat the installed PWA as its own app context. If it does not inherit the Safari Supabase session, you may need to sign in once from the installed app. After that Supabase should persist the session there.
