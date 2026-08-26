@@ -51,13 +51,12 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 <body>
 <div class="app">
 <section id="auth">
-  <div class="authbox">
-    <div class="title">Issue Report</div>
-    <div class="muted" style="margin:8px 0 18px">Enter Access Code</div>
-    <input id="pinCode" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="off"
-      style="text-align:center;font-size:28px;letter-spacing:10px" onkeydown="if(event.key==='Enter')unlockWithPin()">
-    <button class="primary" style="width:100%;margin-top:14px" onclick="unlockWithPin()">Enter</button>
-    <div id="authmsg" class="muted" style="margin-top:10px"></div>
+  <div class="card" style="max-width:460px;margin:60px auto">
+    <div class="muted">Issue Report</div><div class="title">Sign in</div>
+    <label>Email</label><input id="email" type="email">
+    <label>Password</label><input id="password" type="password">
+    <div class="toolbar"><button class="primary grow" onclick="signIn()">Sign in</button><button class="secondary grow" onclick="signUp()">Create account</button></div>
+    <div id="authmsg" class="muted"></div>
   </div>
 </section>
 
@@ -171,57 +170,22 @@ const el=id=>document.getElementById(id);
 function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','members','locations','categories','newIssue'].forEach(x=>{const n=el(x);if(n)n.classList.toggle('hidden',x!==id);});}
 function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
-function unlockWithPin(){
- const pin=(el('pinCode')?.value||'').trim();
- if(pin!=='1111'){
-   el('authmsg').textContent='Incorrect code';
-   return;
- }
- localStorage.setItem('issue_report_pin_ok','1');
- loadProjects();
-}
-
-async function signOut(){
- localStorage.removeItem('issue_report_pin_ok');
- if(el('pinCode'))el('pinCode').value='';
- show('auth');
-}
-
 async function boot(){
- if(localStorage.getItem('issue_report_pin_ok')==='1'){
-   await loadProjects();
- }else{
-   show('auth');
-   setTimeout(()=>el('pinCode')?.focus(),100);
- }
+ const {data,error}=await sb.auth.getSession();
+ if(error){el('authmsg').textContent=error.message;show('auth');return;}
+ if(data.session){await loadProjects();}else{show('auth');}
 }
+async function signUp(){const {error}=await sb.auth.signUp({email:el('email').value.trim(),password:el('password').value});el('authmsg').textContent=error?error.message:'Account created. Check email if confirmation is enabled.';}
+async function signIn(){const {error}=await sb.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)el('authmsg').textContent=error.message;else loadProjects();}
+async function signOut(){await sb.auth.signOut();show('auth');}
 
-function showNewProject(){
- show('newProject');
-}
-
+function showNewProject(){show('newProject')}
 async function createProject(){
- const name=el('pname').value.trim();
- if(!name)return alert('Project name required.');
-
- const {data:u,error:userError}=await sb.auth.getUser();
- if(userError || !u?.user){
-   return alert('No active Supabase user session. Please sign in once in the browser before creating private projects.');
- }
-
- const {error}=await sb.from('projects').insert({
-   name,
-   venue:el('pvenue').value.trim(),
-   owner_id:u.user.id
- });
-
- if(error)return alert(error.message);
-
- el('pname').value='';
- el('pvenue').value='';
- await loadProjects();
+ const name=el('pname').value.trim();if(!name)return alert('Project name required.');
+ const {data:u}=await sb.auth.getUser();
+ const {error}=await sb.from('projects').insert({name,venue:el('pvenue').value.trim(),owner_id:u.user.id});
+ if(error)return alert(error.message); el('pname').value='';el('pvenue').value='';loadProjects();
 }
-
 async function loadProjects(){
  const {data,error}=await sb.from('projects').select('*').order('created_at',{ascending:false});
  if(error)return alert(error.message);
