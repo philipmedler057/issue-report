@@ -157,13 +157,21 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
 let currentProject=null,currentIssues=[],currentLocations=[],currentCategories=[],currentIssue=null,currentIssueLocationId=null,currentExportType='pdf';
 const el=id=>document.getElementById(id);
-function show(id){['projects','newProject','project','locationIssues','issueDetail','members','locations','newIssue,'categories'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
+function show(id){['projects','newProject','project','locationIssues','issueDetail','members','locations','categories','newIssue'].forEach(x=>{const node=el(x);if(node)node.classList.toggle('hidden',x!==id);});}
 function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
-async function boot(){ await loadProjects(); }
-=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
-=await sb.auth.signUp({email:el('email').value.trim(),password:el('password').value});el('authmsg').textContent=error?error.message:'Account created. Check email if confirmation is enabled.';}
-=await sb.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)el('authmsg').textContent=error.message;else loadProjects();}
+async function boot(){
+ const {data}=await sb.auth.getSession();
+ if(!data.session){
+   el('projectList').innerHTML='<div class="card"><b>No active session</b><div class="muted" style="margin-top:6px">The login screen is temporarily disabled. The app UI works, but private Supabase projects require an authenticated session.</div></div>';
+   show('projects');
+   return;
+ }
+ await loadProjects();
+}
+
+
+
 function showNewProject(){show('newProject')}
 async function createProject(){
  const name=el('pname').value.trim();if(!name)return alert('Project name required.');
