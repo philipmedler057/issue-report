@@ -1,15 +1,33 @@
-# Issue Report Supabase V7 — Multi User
+# Issue Report Supabase V8 FINAL
 
-1. Run SUPABASE_MULTI_USER.sql once in Supabase SQL Editor.
-2. Upload the normal app files to GitHub and commit.
-3. Open a project and use Members.
+## New in V8
+- Predefined Categories, managed exactly like Locations
+- Unlimited categories per project
+- Categories can be deleted
+- New Issue uses a category dropdown instead of free text
+- Existing legacy category text remains readable
+- Improved iPhone PWA setup
+- App name: Issue Report
+- Dedicated 180px Apple touch icon
+- 192px and 512px PWA icons
+- Standalone iPhone launch mode
 
-Roles:
-- Admin: manage project and members
-- User: create/edit issues
-- Viewer: read-only
+## Supabase first
+Run `SUPABASE_CATEGORIES.sql` once in Supabase SQL Editor.
 
-A colleague must first create an account in the app, then an Admin can add their email.
-The project owner cannot be removed or downgraded.
+## GitHub deploy
+Upload/replace all app files from this ZIP in the GitHub repository and commit to main.
 
-If Safari caches the old app, open once with ?v=7.
+## Install on iPhone
+1. Open the GitHub Pages app in Safari.
+2. Tap Share.
+3. Tap Add to Home Screen.
+4. Confirm the name `Issue Report`.
+5. Launch it from the new Home Screen icon.
+
+If Safari still shows an old build, open once with `?v=8`.
+
+
+## Final app icon
+This build uses the approved dark navy app icon with a centered white ring.
+You do not need to deploy any earlier V8 package first.

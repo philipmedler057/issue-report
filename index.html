@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Issue Report">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Issue Report</title>
@@ -69,7 +73,7 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 
 <section id="project" class="hidden">
   <div class="top"><button class="secondary" onclick="loadProjects()">← Projects</button><div><div id="pmeta" class="muted"></div><div id="ptitle" class="title"></div></div></div>
-  <div class="toolbar"><button class="secondary" onclick="locations()">Manage Locations</button><button class="secondary" onclick="showMembers()">Members</button><button class="secondary" onclick="openExportPicker('pdf')">Export PDF</button><button class="secondary" onclick="openExportPicker('word')">Export Word</button><button class="danger" onclick="deleteProject()">Delete Project</button></div>
+  <div class="toolbar"><button class="secondary" onclick="locations()">Manage Locations</button><button class="secondary" onclick="categories()">Manage Categories</button><button class="secondary" onclick="showMembers()">Members</button><button class="secondary" onclick="openExportPicker('pdf')">Export PDF</button><button class="secondary" onclick="openExportPicker('word')">Export Word</button><button class="danger" onclick="deleteProject()">Delete Project</button></div>
   <div class="section-label">Select a location</div><div id="projectLocationList"></div>
 </section>
 
@@ -104,6 +108,18 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
   </div>
   <div id="memberList"></div>
 </section>
+
+<section id="categories" class="hidden">
+  <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">Categories</div></div>
+  <div class="card">
+    <div class="muted">Add as many predefined categories as needed for this project.</div>
+    <label>Add category</label>
+    <div class="row"><input id="catname" placeholder="e.g. Cabling"><button class="primary" onclick="addCategory()">Add</button></div>
+  </div>
+  <div id="catCount" class="muted" style="margin-bottom:10px"></div>
+  <div id="catList"></div>
+</section>
+
 <section id="locations" class="hidden">
   <div class="top"><button class="secondary" onclick="openProject(currentProject)">← Back</button><div class="title">Locations</div></div>
   <div class="card"><div class="muted">Add as many locations as needed.</div><label>Add location</label><div class="row"><input id="locname"><button class="primary" onclick="addLocation()">Add</button></div></div>
@@ -121,7 +137,7 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 
     <label>Description</label><textarea id="desc"></textarea>
     <label>Location</label><select id="location"></select>
-    <label>Category</label><input id="category">
+    <label>Category</label><select id="category"><option value="">Select category</option></select>
     <label>Status</label><select id="status"><option value="open">Open</option><option value="resolved">Resolved</option></select>
     <button class="primary" style="margin-top:14px;width:100%" onclick="saveIssue()">Save Issue</button>
     <div id="issuemsg" class="muted" style="margin-top:8px"></div>
@@ -149,9 +165,9 @@ textarea{min-height:105px;resize:vertical} label{display:block;margin:13px 0 7px
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script>
 const sb=window.supabase.createClient("https://bewfwmbzajtzcokatpge.supabase.co","sb_publishable_bHfwvhnZVE4glAAf2FPBHw_QQQspCyK");
-let currentProject=null,currentIssues=[],currentLocations=[],currentIssue=null,currentIssueLocationId=null,currentExportType='pdf';
+let currentProject=null,currentIssues=[],currentLocations=[],currentCategories=[],currentIssue=null,currentIssueLocationId=null,currentExportType='pdf';
 const el=id=>document.getElementById(id);
-function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','members','locations','newIssue'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
+function show(id){['auth','projects','newProject','project','locationIssues','issueDetail','members','locations','newIssue,'categories'].forEach(x=>el(x).classList.toggle('hidden',x!==id));}
 function safe(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
 async function boot(){const {data}=await sb.auth.getSession();if(data.session)loadProjects();else show('auth');}
@@ -175,7 +191,7 @@ async function loadProjects(){
 
 async function openProject(p){
  currentProject=p;el('ptitle').textContent=p.name;el('pmeta').textContent=p.venue||'';
- const {data,error}=await sb.from('issues').select('*,locations(name),issue_photos(*)').eq('project_id',p.id).order('issue_number');
+ const {data,error}=await sb.from('issues').select('*,locations(name),categories(name),issue_photos(*)').eq('project_id',p.id).order('issue_number');
  if(error)return alert(error.message); currentIssues=data||[];
  await loadLocations();
 
@@ -231,7 +247,7 @@ async function openIssue(issueId){
  el('detailTitle').textContent='#'+String(currentIssue.issue_number).padStart(3,'0');
  el('detailDescription').textContent=currentIssue.description||'-';
  el('detailLocation').textContent=currentIssue.locations?.name||'-';
- el('detailCategory').textContent=currentIssue.category||'-';
+ el('detailCategory').textContent=currentIssue.categories?.name||currentIssue.category||'-';
  el('detailStatus').textContent=currentIssue.status||'-';
  el('detailPhotos').innerHTML='';
  const photos=(currentIssue.issue_photos||[]).sort((a,b)=>a.position-b.position);
@@ -278,6 +294,48 @@ async function removeMember(userId){
  if(error)return alert(error.message);await showMembers();
 }
 
+
+async function loadCategories(){
+ const {data,error}=await sb.from('categories').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');
+ if(error)return alert(error.message);
+ currentCategories=data||[];
+}
+
+async function categories(){
+ await loadCategories();
+ el('catCount').textContent=`${currentCategories.length} categor${currentCategories.length===1?'y':'ies'}`;
+ el('catList').innerHTML=currentCategories.map(c=>`
+   <div class="card row">
+     <div class="grow">${safe(c.name)}</div>
+     <button class="danger" data-delete-category="${c.id}">Delete</button>
+   </div>`).join('')||'<div class="empty">No categories yet.</div>';
+ el('catList').querySelectorAll('[data-delete-category]').forEach(btn=>btn.onclick=()=>deleteCategory(btn.dataset.deleteCategory));
+ show('categories');
+}
+
+async function addCategory(){
+ const name=el('catname').value.trim();
+ if(!name)return;
+ const {error}=await sb.from('categories').insert({project_id:currentProject.id,name});
+ if(error)return alert(error.message);
+ el('catname').value='';
+ await categories();
+}
+
+async function deleteCategory(categoryId){
+ const cat=currentCategories.find(c=>c.id===categoryId);
+ if(!cat)return;
+ const linked=currentIssues.filter(i=>i.category_id===categoryId);
+ if(linked.length){
+   if(!confirm(`Delete category "${cat.name}"? ${linked.length} issue(s) will remain, but without a category.`))return;
+ } else {
+   if(!confirm(`Delete category "${cat.name}"?`))return;
+ }
+ const {error}=await sb.from('categories').delete().eq('id',categoryId);
+ if(error)return alert(error.message);
+ await categories();
+}
+
 async function loadLocations(){
  const {data,error}=await sb.from('locations').select('*').eq('project_id',currentProject.id).eq('active',true).order('sort_order').order('name');
  if(error)return alert(error.message);currentLocations=data||[];
@@ -322,7 +380,9 @@ async function newIssueForCurrentLocation(){
  el('location').value=currentIssueLocationId||'';
 }
 async function newIssue(){
- await loadLocations();el('location').innerHTML='<option value="">Select location</option>'+currentLocations.map(l=>`<option value="${l.id}">${safe(l.name)}</option>`).join('');
+ await loadLocations();
+ await loadCategories();el('location').innerHTML='<option value="">Select location</option>'+currentLocations.map(l=>`<option value="${l.id}">${safe(l.name)}</option>`).join('');
+ el('category').innerHTML='<option value="">Select category</option>'+currentCategories.map(c=>`<option value="${c.id}">${safe(c.name)}</option>`).join('');
  el('desc').value='';el('category').value='';el('status').value='open';el('issuemsg').textContent='';
  for(let n=1;n<=4;n++)resetPhotoSlot(n);show('newIssue');
 }
@@ -349,7 +409,7 @@ async function saveIssue(){
  const d=el('desc').value.trim();if(!d)return alert('Description required.');
  const chosen=[el('photo1').files[0],el('photo2').files[0],el('photo3').files[0],el('photo4').files[0]].filter(Boolean);
  el('issuemsg').textContent='Saving issue...';
- const {data:issue,error}=await sb.from('issues').insert({project_id:currentProject.id,issue_number:0,description:d,location_id:el('location').value||null,category:el('category').value||null,status:el('status').value}).select().single();
+ const {data:issue,error}=await sb.from('issues').insert({project_id:currentProject.id,issue_number:0,description:d,location_id:el('location').value||null,category_id:el('category').value||null,category:null,status:el('status').value}).select().single();
  if(error){el('issuemsg').textContent=error.message;return;}
  const {data:u}=await sb.auth.getUser();
  for(let n=0;n<chosen.length;n++){
@@ -440,7 +500,7 @@ async function deleteProject(){
  }
  const {error}=await sb.from('projects').delete().eq('id',currentProject.id);
  if(error)return alert(error.message);
- currentProject=null;currentIssues=[];currentLocations=[];
+ currentProject=null;currentIssues=[];currentLocations=[];currentCategories=[];
  await loadProjects();
 }
 
@@ -454,7 +514,7 @@ async function exportPDF(exportIssues=null){
    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(currentProject.venue||'',15,34);doc.line(15,39,195,39);
    doc.setFont('helvetica','bold');doc.setFontSize(17);doc.text('ISSUE #'+String(i.issue_number).padStart(3,'0'),15,51);
    doc.setFontSize(9);doc.text('Location:',15,61);doc.setFont('helvetica','normal');doc.text(i.locations?.name||'-',34,61);
-   doc.setFont('helvetica','bold');doc.text('Category:',15,68);doc.setFont('helvetica','normal');doc.text(i.category||'-',34,68);
+   doc.setFont('helvetica','bold');doc.text('Category:',15,68);doc.setFont('helvetica','normal');doc.text(i.categories?.name||i.category||'-',34,68);
    doc.setFont('helvetica','bold');doc.text('Description',15,79);doc.setFont('helvetica','normal');doc.setFontSize(10);
    const lines=doc.splitTextToSize(i.description,180);doc.text(lines,15,87);
    const y=Math.min(112,87+lines.length*5+7);
@@ -496,7 +556,7 @@ async function exportWord(exportIssues){
      new Paragraph({text:''}),
      new Paragraph({children:[new TextRun({text:'ISSUE #'+String(i.issue_number).padStart(3,'0'),bold:true,size:28})]}),
      new Paragraph({children:[new TextRun({text:'Location: ',bold:true}),new TextRun(i.locations?.name||'-')]}),
-     new Paragraph({children:[new TextRun({text:'Category: ',bold:true}),new TextRun(i.category||'-')]}),
+     new Paragraph({children:[new TextRun({text:'Category: ',bold:true}),new TextRun(i.categories?.name||i.category||'-')]}),
      new Paragraph({children:[new TextRun({text:'Status: ',bold:true}),new TextRun(i.status||'-')]}),
      new Paragraph({text:''}),
      new Paragraph({children:[new TextRun({text:'Description',bold:true})]}),
